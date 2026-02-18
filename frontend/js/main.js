@@ -1,5 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // --- GLOBAL AUTH CHECK ---
+    checkAuthProtection();
+    updateNavbarUser();
+
     // --- AUTH LOGIC (Index.html) ---
     const modal = document.getElementById('auth-modal');
     if (modal) {
@@ -14,7 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- COMPANY DASHBOARD LOGIC (Company.html) ---
     const createJobForm = document.getElementById('create-job-form');
-    if (createJobForm) {
+    // Also run if we are just viewing the company dashboard
+    if (createJobForm || window.location.pathname.includes('company.html')) {
         initCompanyDashboard();
     }
 
@@ -28,14 +33,76 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
         btnLogout.addEventListener('click', () => {
-            // Mock Logout
-            window.location.href = 'index.html';
+            logout();
         });
     }
 });
 
 // ==========================================
-// AUTH ENTITY
+// SIMULATED AUTH SYSTEM (LocalStorage)
+// ==========================================
+function login(email, role) {
+    const user = { email, role };
+    localStorage.setItem('currentUser', JSON.stringify(user));
+}
+
+function logout() {
+    localStorage.removeItem('currentUser');
+    window.location.href = 'index.html';
+}
+
+function getUser() {
+    const userStr = localStorage.getItem('currentUser');
+    return userStr ? JSON.parse(userStr) : null;
+}
+
+function checkAuthProtection() {
+    const path = window.location.pathname;
+    const user = getUser();
+
+    // If on protected pages and not logged in
+    if ((path.includes('student.html') || path.includes('company.html') || path.includes('match.html'))) {
+        if (!user) {
+            window.location.href = 'index.html';
+        }
+        // Simple role protection (Optional for MVP but good practice)
+        else if (path.includes('student') && user.role !== 'student') {
+            alert('Access Denied: Student Area');
+            window.location.href = 'company.html';
+        }
+        else if (path.includes('company') && user.role !== 'company') {
+            alert('Access Denied: Company Area');
+            window.location.href = 'student.html';
+        }
+    }
+
+    // If on auth page (index) and already logged in
+    if ((path.endsWith('/') || path.includes('index.html')) && user) {
+        // Optional: Auto-redirect if already logged in? 
+        // Let's NOT auto-redirect to allow landing page access, but maybe show "Go to Dashboard" button
+    }
+}
+
+function updateNavbarUser() {
+    const user = getUser();
+    const logoBadge = document.querySelector('.logo .badge');
+    if (user && logoBadge) {
+        // Just ensuring badge matches role (visual polish)
+        if (user.role === 'company') {
+            logoBadge.textContent = 'Recruiter';
+            logoBadge.style.background = '#e0e7ff';
+            logoBadge.style.color = '#3730a3';
+        } else {
+            logoBadge.textContent = 'Student';
+            logoBadge.style.background = '#f3f4f6';
+            logoBadge.style.color = '#1f2937';
+        }
+    }
+}
+
+
+// ==========================================
+// AUTH PAGE LOGIC
 // ==========================================
 function initAuthLogic() {
     const modal = document.getElementById('auth-modal');
@@ -53,93 +120,71 @@ function initAuthLogic() {
     const registerForm = document.getElementById('register-form');
 
     // State
-    let isLoginView = true;
-
-    // Functions
     const openModal = (view = 'login') => {
         modal.classList.remove('hidden');
-        if (view === 'login') {
-            showLogin();
-        } else {
-            showRegister();
-        }
+        view === 'login' ? showLogin() : showRegister();
     };
 
-    const closeModalFunc = () => {
-        modal.classList.add('hidden');
-    };
-
+    const closeModalFunc = () => modal.classList.add('hidden');
     const showLogin = () => {
         loginFormContainer.classList.remove('hidden');
         registerFormContainer.classList.add('hidden');
-        isLoginView = true;
     };
-
     const showRegister = () => {
         loginFormContainer.classList.add('hidden');
         registerFormContainer.classList.remove('hidden');
-        isLoginView = false;
     };
 
-    // Event Listeners
+    // Listeners
     if (btnLoginNav) btnLoginNav.addEventListener('click', () => openModal('login'));
     if (btnRegisterNav) btnRegisterNav.addEventListener('click', () => openModal('register'));
     if (btnGetStarted) btnGetStarted.addEventListener('click', () => openModal('register'));
-
     if (closeModal) closeModal.addEventListener('click', closeModalFunc);
-
-    // Close modal if clicking outside content
-    window.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeModalFunc();
-        }
-    });
+    window.addEventListener('click', (e) => { if (e.target === modal) closeModalFunc(); });
 
     if (switchToRegister) {
-        switchToRegister.addEventListener('click', (e) => {
-            e.preventDefault();
-            showRegister();
-        });
+        switchToRegister.addEventListener('click', (e) => { e.preventDefault(); showRegister(); });
     }
-
     if (switchToLogin) {
-        switchToLogin.addEventListener('click', (e) => {
-            e.preventDefault();
-            showLogin();
-        });
+        switchToLogin.addEventListener('click', (e) => { e.preventDefault(); showLogin(); });
     }
 
-    // Mock Submissions
+    // Login Submit
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
-            // Simple mock redirect
-            if (email.includes('student')) {
-                window.location.href = 'student.html';
-            } else if (email.includes('company')) {
-                window.location.href = 'company.html';
-            } else {
-                window.location.href = 'student.html'; // Default to student
+
+            // Heuristic Role Determination
+            let role = 'student';
+            if (email.includes('company') || email.includes('recruiter') || email.includes('hr')) {
+                role = 'company';
             }
+
+            login(email, role); // Save to LocalStorage
+
+            if (role === 'student') window.location.href = 'student.html';
+            else window.location.href = 'company.html';
         });
     }
 
+    // Register Submit
     if (registerForm) {
         registerForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const role = document.getElementById('register-role').value;
-            if (role === 'student') {
-                window.location.href = 'student.html';
-            } else {
-                window.location.href = 'company.html';
-            }
+            const email = document.getElementById('register-email').value;
+
+            login(email, role); // Save to LocalStorage
+
+            if (role === 'student') window.location.href = 'student.html';
+            else window.location.href = 'company.html';
         });
     }
 }
 
 // ==========================================
-// STUDENT DASHBOARD ENTITY
+// STUDENT DASHBOARD LOGIC
 // ==========================================
 function initStudentDashboard() {
     const form = document.getElementById('resume-upload-form');
@@ -150,89 +195,79 @@ function initStudentDashboard() {
     const educationText = document.getElementById('education-text');
     const matchesGrid = document.getElementById('matches-grid');
     const emptyState = document.getElementById('empty-state');
-
-    // Drag and Drop Visuals
     const dropArea = document.getElementById('drop-area');
 
+    // Drag & Drop
     if (dropArea) {
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
+            dropArea.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
         });
-
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
         dropArea.addEventListener('dragover', () => dropArea.style.borderColor = '#2563eb');
         dropArea.addEventListener('dragleave', () => dropArea.style.borderColor = '#cbd5e1');
         dropArea.addEventListener('drop', () => dropArea.style.borderColor = '#cbd5e1');
-
         fileInput.addEventListener('change', () => {
-            if (fileInput.files.length > 0) {
-                document.querySelector('.file-msg').textContent = fileInput.files[0].name;
-            }
+            if (fileInput.files.length) document.querySelector('.file-msg').textContent = fileInput.files[0].name;
         });
     }
 
-
     form.addEventListener('submit', (e) => {
         e.preventDefault();
-
-        if (!fileInput.files.length) {
-            alert('Please select a PDF file first.');
-            return;
-        }
+        if (!fileInput.files.length) { alert('Please select a PDF file first.'); return; }
 
         const btn = form.querySelector('button');
         const originalText = btn.innerText;
         btn.innerText = 'Analyzing...';
         btn.disabled = true;
 
-        // Mock API Latency
         setTimeout(() => {
             btn.innerText = originalText;
             btn.disabled = false;
 
-            // 1. Show Profile Data (Mock)
+            // Mock Data
             renderProfile({
                 skills: ['Python', 'JavaScript', 'React', 'FastAPI', 'HTML/CSS', 'Git'],
                 experience: '2 Years',
                 education: 'B.Tech Computer Science'
             });
 
-            // 2. Show Matches (Mock)
-            renderMatches([
+            // Mock Matches
+            const matches = [
                 {
+                    id: 1,
                     title: 'Junior Frontend Developer',
                     company: 'TechFlow Solutions',
                     score: 92,
-                    summary: 'Excellent match! Your React and CSS skills align perfectly. Missing only TypeScript.'
+                    summary: 'Excellent match! Your React and CSS skills align perfectly. Missing only TypeScript.',
+                    matched: ['React', 'JavaScript', 'HTML5', 'CSS3', 'Git'],
+                    missing: ['TypeScript']
                 },
                 {
+                    id: 2,
                     title: 'Full Stack Engineer',
                     company: 'StartUp Inc',
                     score: 78,
-                    summary: 'Good potential. Strong backend fit with Python/FastAPI, but role requires 3+ years experience.'
+                    summary: 'Good potential. Strong backend fit with Python/FastAPI, but role requires 3+ years experience.',
+                    matched: ['Python', 'FastAPI', 'Git'],
+                    missing: ['Docker', 'AWS', '3+ Years Exp']
                 },
                 {
+                    id: 3,
                     title: 'React Intern',
                     company: 'WebWizards',
                     score: 85,
-                    summary: 'Perfect entry-level fit. You have all required technical skills.'
+                    summary: 'Perfect entry-level fit. You have all required technical skills.',
+                    matched: ['React', 'JavaScript', 'HTML/CSS'],
+                    missing: ['Redux']
                 }
-            ]);
+            ];
 
+            renderMatches(matches);
             alert('Resume Analysis Complete!');
-
         }, 1500);
     });
 
     function renderProfile(data) {
-        // Show card
         profileCard.classList.remove('hidden');
-
-        // Clear and add skills
         skillsList.innerHTML = '';
         data.skills.forEach(skill => {
             const tag = document.createElement('span');
@@ -240,19 +275,17 @@ function initStudentDashboard() {
             tag.innerText = skill;
             skillsList.appendChild(tag);
         });
-
         experienceText.innerText = data.experience;
         educationText.innerText = data.education;
     }
 
     function renderMatches(matches) {
         emptyState.classList.add('hidden');
-        matchesGrid.innerHTML = ''; // Clear empty state or old matches
+        matchesGrid.innerHTML = '';
 
         matches.forEach(match => {
             const card = document.createElement('div');
             card.className = 'match-card';
-
             const scoreClass = match.score >= 85 ? 'high' : match.score >= 70 ? 'medium' : 'low';
 
             card.innerHTML = `
@@ -265,13 +298,16 @@ function initStudentDashboard() {
                 </div>
                 <div class="match-body">
                     <p class="match-summary">${match.summary}</p>
-                    <button class="btn btn-primary btn-block mt-1 view-details-btn" style="font-size: 0.9rem;">View Details</button>
+                    <button class="btn btn-primary btn-block mt-1 view-details-btn" data-id="${match.id}">View Details</button>
                 </div>
             `;
             matchesGrid.appendChild(card);
 
-            // Add click listener to the button we just added
+            // Click Handler for "View Details"
+            // We use a closure here to capture 'match' data effectively
             card.querySelector('.view-details-btn').addEventListener('click', () => {
+                // SAVE MATCH DATA TO LOCAL STORAGE
+                localStorage.setItem('selectedMatch', JSON.stringify(match));
                 window.location.href = 'match.html';
             });
         });
@@ -279,58 +315,47 @@ function initStudentDashboard() {
 }
 
 // ==========================================
-// COMPANY DASHBOARD ENTITY
+// COMPANY DASHBOARD LOGIC
 // ==========================================
 function initCompanyDashboard() {
     const form = document.getElementById('create-job-form');
     const jobsGrid = document.getElementById('jobs-grid');
 
-    // Mock initial jobs
-    const myJobs = [
-        {
-            title: 'Senior Backend Engineer',
-            applicants: 12,
-            topMatch: 95
-        },
-        {
-            title: 'UI/UX Designer',
-            applicants: 5,
-            topMatch: 88
-        }
+    // Load jobs from LocalStorage or use default
+    let myJobs = JSON.parse(localStorage.getItem('companyJobs')) || [
+        { title: 'Senior Backend Engineer', applicants: 12, topMatch: 95 },
+        { title: 'UI/UX Designer', applicants: 5, topMatch: 88 }
     ];
 
-    renderJobs(myJobs);
+    if (jobsGrid) renderJobs(myJobs);
 
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('job-title').value;
+            const description = document.getElementById('job-description').value;
 
-        const title = document.getElementById('job-title').value;
-        const description = document.getElementById('job-description').value;
+            if (title && description) {
+                const newJob = { title: title, applicants: 0, topMatch: 0 };
+                myJobs.unshift(newJob);
 
-        if (title && description) {
-            // Mock Job Creation
-            const newJob = {
-                title: title,
-                applicants: 0,
-                topMatch: 0
-            };
+                // Save to Storage
+                localStorage.setItem('companyJobs', JSON.stringify(myJobs));
 
-            myJobs.unshift(newJob);
-            renderJobs(myJobs);
-            form.reset();
-            alert('Job Posted Successfully!');
-        }
-    });
+                renderJobs(myJobs);
+                form.reset();
+                alert('Job Posted Successfully!');
+            }
+        });
+    }
 
     function renderJobs(jobs) {
+        if (!jobsGrid) return;
         jobsGrid.innerHTML = '';
-
         jobs.forEach(job => {
             const card = document.createElement('div');
-            card.className = 'match-card'; // Reusing match card style
-
+            card.className = 'match-card';
             const scoreClass = job.topMatch >= 90 ? 'high' : job.topMatch >= 75 ? 'medium' : 'low';
-
             card.innerHTML = `
                 <div class="match-header">
                     <div>
@@ -340,7 +365,7 @@ function initCompanyDashboard() {
                     ${job.topMatch > 0 ? `<div class="match-score ${scoreClass}">Top: ${job.topMatch}%</div>` : '<div class="badge">New</div>'}
                 </div>
                 <div class="match-body">
-                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                     <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
                         <button class="btn btn-primary" style="flex: 1; font-size: 0.9rem;">View Matches</button>
                         <button class="btn btn-secondary" style="font-size: 0.9rem;">Edit</button>
                     </div>
@@ -352,21 +377,23 @@ function initCompanyDashboard() {
 }
 
 // ==========================================
-// MATCH REPORT ENTITY
+// MATCH REPORT LOGIC
 // ==========================================
 function initMatchReport() {
-    // Mock Data for the specific match
-    const matchData = {
-        jobTitle: 'Junior Frontend Developer',
-        company: 'TechFlow Solutions',
-        score: 92,
-        summary: 'Candidate shows exceptional promise. Strong proficiency in core frontend technologies (React, CSS, JS) matches our requirements perfectly. Lack of TypeScript experience is a minor gap, but manageable.',
-        matchedSkills: ['React', 'JavaScript', 'HTML5', 'CSS3', 'Git', 'Responsive Design'],
-        missingSkills: ['TypeScript', 'Redux', 'Jest']
-    };
+    // Retrieve data from LocalStorage
+    const storedMatch = localStorage.getItem('selectedMatch');
 
-    // DOM Elements
-    document.getElementById('job-title').textContent = matchData.jobTitle;
+    if (!storedMatch) {
+        // Fallback if accessed directly
+        alert('No match selected. Redirecting to Dashboard.');
+        window.location.href = 'student.html';
+        return;
+    }
+
+    const matchData = JSON.parse(storedMatch);
+
+    // Hydrate DOM
+    document.getElementById('job-title').textContent = matchData.title; // Note: key is 'title' in object
     document.getElementById('company-name').textContent = matchData.company;
     document.getElementById('score-text').textContent = `${matchData.score}%`;
     document.getElementById('ai-summary').textContent = matchData.summary;
@@ -376,23 +403,23 @@ function initMatchReport() {
     const scoreCircle = document.getElementById('score-circle');
 
     // Color code circle
-    if (matchData.score >= 90) {
-        scoreCircle.style.borderColor = '#10b981'; // Success
-    } else if (matchData.score >= 70) {
-        scoreCircle.style.borderColor = '#eab308'; // Warning/Medium
-    } else {
-        scoreCircle.style.borderColor = '#ef4444'; // Danger
-    }
+    if (matchData.score >= 90) scoreCircle.style.borderColor = '#10b981';
+    else if (matchData.score >= 70) scoreCircle.style.borderColor = '#eab308';
+    else scoreCircle.style.borderColor = '#ef4444';
 
     // Render Skills
-    matchData.matchedSkills.forEach(skill => {
+    // Fallback if array is missing in mock data (safeguard)
+    const matched = matchData.matched || ['React', 'HTML'];
+    const missing = matchData.missing || ['TypeScript'];
+
+    matched.forEach(skill => {
         const span = document.createElement('span');
         span.className = 'tag success';
         span.textContent = skill;
         matchedContainer.appendChild(span);
     });
 
-    matchData.missingSkills.forEach(skill => {
+    missing.forEach(skill => {
         const span = document.createElement('span');
         span.className = 'tag missing';
         span.textContent = skill;
