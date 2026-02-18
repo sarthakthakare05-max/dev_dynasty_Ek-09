@@ -23,11 +23,17 @@ async def perform_match(job_id: str, applicant_id: str):
         raise HTTPException(status_code=404, detail="Resume not found. Please upload a resume first.")
     
     # 3. Process Logic
+    # Safely get fields
+    app_skills = resume.get("skills", []) or []
+    app_exp = resume.get("experience_years", 0) or 0
+    job_skills = job.get("required_skills", []) or []
+    job_exp = job.get("required_experience", 0) or 0
+
     score, matched, missing = calculate_match_score(
-        applicant_skills=resume["skills"],
-        applicant_exp=resume["experience_years"],
-        job_skills=job["required_skills"],
-        required_exp=job["required_experience"]
+        applicant_skills=app_skills,
+        applicant_exp=app_exp,
+        job_skills=job_skills,
+        required_exp=job_exp
     )
     
     recommendations = get_recommendations(missing)
@@ -48,5 +54,5 @@ async def perform_match(job_id: str, applicant_id: str):
     await matches_collection.insert_one(match_data)
     
     # Prepare response
-    match_data["id"] = match_data.pop("_id")
+    # Pydantic (with alias="_id") will handle the mapping from _id to id
     return match_data

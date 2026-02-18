@@ -21,50 +21,57 @@
     </nav>
 
     <div class="container match-report-container">
+        <main class="main-content">
+            <div class="match-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
 
-        <!-- Header / Score -->
-        <div class="card report-header-card">
-            <div class="report-info">
-                <h1 id="job-title">Loading...</h1>
-                <p id="company-name" class="text-gray">Loading...</p>
-            </div>
-            <div class="score-circle-container">
-                <div class="score-circle" id="score-circle">
-                    <span id="score-text">0%</span>
+                <!-- Left: Match Report -->
+                <div class="match-report-column">
+                    <div class="section-header">
+                        <h2>Match Report</h2>
+                    </div>
+
+                    <div class="card match-summary-card">
+                        <div class="match-score-ring" id="score-circle">
+                            <span id="score-text">0%</span>
+                            <small>Match</small>
+                        </div>
+                        <div class="match-info">
+                            <h3 id="job-title">Job Title</h3>
+                            <p class="company-name" id="company-name">Company Name</p>
+                            <p class="ai-summary" id="ai-summary">AI Analysis...</p>
+                            <button id="btn-apply" class="btn btn-primary" style="margin-top: 1rem; width: 100%;">Apply
+                                for Job</button>
+                        </div>
+                    </div>
+
+                    <div class="skills-breakdown">
+                        <div class="card">
+                            <h4>✅ Matched XML Skills</h4>
+                            <!-- "XML" is weird here, probably meant "Extracted"? Keeping generic -->
+                            <div id="matched-skills" class="tags-container"></div>
+                        </div>
+                        <div class="card">
+                            <h4>⚠️ Missing Skills & Recommendations</h4>
+                            <div id="missing-skills" class="skills-list"></div>
+                        </div>
+                    </div>
                 </div>
-                <p>Match Score</p>
-            </div>
-        </div>
 
-        <!-- AI Summary -->
-        <div class="card mt-2">
-            <h3>AI Analysis</h3>
-            <p id="ai-summary" class="ai-summary-text">
-                Analyzing match details...
-            </p>
-        </div>
-
-        <!-- Skills Breakdown -->
-        <div class="skills-grid mt-2">
-
-            <!-- Matched Skills -->
-            <div class="card">
-                <h3 class="text-success">Matched Skills</h3>
-                <div id="matched-skills" class="tags-container">
-                    <!-- Injected via JS -->
+                <!-- Right: Resume Viewer -->
+                <div class="resume-viewer-column">
+                    <div class="section-header">
+                        <h2>Your Resume</h2>
+                    </div>
+                    <div class="card" style="height: 800px; padding: 0; overflow: hidden;">
+                        <iframe id="resume-frame" src="" width="100%" height="100%" style="border: none;">
+                            <p>Your browser does not support PDFs. <a id="resume-link" href="#">Download the PDF</a>.
+                            </p>
+                        </iframe>
+                    </div>
                 </div>
+
             </div>
-
-            <!-- Missing Skills -->
-            <div class="card">
-                <h3 class="text-danger">Missing Skills</h3>
-                <div id="missing-skills" class="tags-container">
-                    <!-- Injected via JS -->
-                </div>
-            </div>
-
-        </div>
-
+        </main>
     </div>
 
     <script src="js/main.js"></script>

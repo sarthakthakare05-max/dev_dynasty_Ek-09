@@ -30,6 +30,10 @@
                 <p class="text-sm text-gray mb-1">Define requirement to find the perfect candidate.</p>
                 <form id="create-job-form">
                     <div class="form-group">
+                        <label for="company-name">Company Name</label>
+                        <input type="text" id="company-name" placeholder="e.g. TechCorp Inc." required>
+                    </div>
+                    <div class="form-group">
                         <label for="job-title">Job Title</label>
                         <input type="text" id="job-title" placeholder="e.g. Frontend Developer" required>
                     </div>
@@ -41,6 +45,14 @@
                     <div class="form-group">
                         <label for="min-experience">Min Experience (Years)</label>
                         <input type="number" id="min-experience" min="0" value="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="min-cgpa">Min CGPA</label>
+                        <input type="number" id="min-cgpa" min="0" max="10" step="0.1" value="0.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="job-skills">Required Skills (Comma separated)</label>
+                        <input type="text" id="job-skills" placeholder="e.g. Python, React, Sql" required>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block mt-1">Post Job</button>
                 </form>

@@ -7,6 +7,10 @@ class UserCreate(BaseModel):
     password: str
     role: str = Field(..., pattern="^(applicant|recruiter)$")
 
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
 class UserInDB(BaseModel):
     id: str = Field(alias="_id")
     email: str

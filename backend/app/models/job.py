@@ -4,9 +4,11 @@ from datetime import datetime
 
 class JobCreate(BaseModel):
     title: str
+    company_name: str
     description: str
     required_skills: List[str]
     required_experience: int
+    min_cgpa: float = 0.0
 
 class JobInDB(JobCreate):
     id: str = Field(alias="_id")

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Applicants | Resume Matcher</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="dashboard-body">
+
+    <!-- Navbar -->
+    <nav class="navbar glass-nav">
+        <div class="container nav-container">
+            <div class="logo">ResumeMatcher.ai <span class="badge">Recruiter</span></div>
+            <div class="nav-links">
+                <a href="company.html" class="btn btn-secondary">Back to Dashboard</a>
+                <button id="btn-logout" class="btn btn-primary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="section-header">
+                <h2>Applicants for <span id="job-titleed">Job Title</span></h2>
+                <p>Ranked by AI Compatibility Score</p>
+            </div>
+
+            <!-- Applicants Grid -->
+            <div class="matches-grid" id="applicants-grid">
+                <!-- Dynamic Content -->
+                <div class="empty-state">Loading applicants...</div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+
+</html>

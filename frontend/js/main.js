@@ -25,8 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- MATCH REPORT LOGIC (Match.html) ---
     const matchedSkillsContainer = document.getElementById('matched-skills');
-    if (matchedSkillsContainer) {
+    if (matchedSkillsContainer && !document.getElementById('applicant-id')) { // Distinguish from details page
         initMatchReport();
+    }
+
+    // --- RECRUITER: APPLICANTS LIST (Applicants.html) ---
+    if (document.getElementById('applicants-grid')) {
+        initApplicantsList();
+    }
+
+    // --- RECRUITER: DETAILS (Applicant_details.html) ---
+    if (document.getElementById('applicant-id')) {
+        initApplicantDetails();
     }
 
     // --- SHARED LOGIC ---
@@ -125,11 +135,12 @@ function initAuthLogic() {
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
 
+            // NEW: No need to guess role. Backend handles it.
             try {
                 const response = await fetch(`${API_BASE_URL}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, role: 'applicant' })
+                    body: JSON.stringify({ email, password })
                 });
 
                 if (response.ok) {
@@ -151,6 +162,7 @@ function initAuthLogic() {
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const role_val = document.getElementById('register-role').value;
+            // Align with Backend Enum: 'applicant' or 'recruiter'
             const role = role_val === 'company' ? 'recruiter' : 'applicant';
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
@@ -235,7 +247,7 @@ function initStudentDashboard() {
             }
         } catch (error) {
             console.error('Upload error:', error);
-            alert('Connection error.');
+            alert('Connection error: ' + error.message);
         } finally {
             btn.innerText = 'Analyze Resume';
             btn.disabled = false;
@@ -264,7 +276,12 @@ function initStudentDashboard() {
             skillsList.appendChild(tag);
         });
         experienceText.innerText = `${data.experience_years} Years`;
-        educationText.innerText = 'Extracted from Resume';
+
+        // NEW: Display CGPA and Education
+        const eduText = data.extracted_education || 'Not Available';
+        const cgpaText = data.extracted_cgpa ? `CGPA: ${data.extracted_cgpa}` : 'CGPA: Not Available';
+
+        educationText.innerHTML = `<strong>${eduText}</strong><br><span class="text-xs text-gray">${cgpaText}</span>`;
     }
 
     function renderJobs(jobs) {
@@ -279,12 +296,13 @@ function initStudentDashboard() {
                 <div class="match-header">
                     <div>
                         <div class="job-title">${job.title}</div>
-                        <div class="company-name">Experience Req: ${job.required_experience}y</div>
+                        <div class="company-name">${job.company_name || 'Unknown Company'}</div>
+                        <div class="text-xs text-gray">Exp: ${job.required_experience}y | Min CGPA: ${job.min_cgpa || 'N/A'}</div>
                     </div>
                 </div>
                 <div class="match-body">
                     <p class="match-summary">${job.description.substring(0, 100)}...</p>
-                    <button class="btn btn-primary btn-block mt-1 apply-btn" data-id="${job.id}">Calculate Match</button>
+                    <button class="btn btn-primary btn-block mt-1 apply-btn" data-id="${job.id || job._id}">Calculate Match</button>
                 </div>
             `;
             matchesGrid.appendChild(card);
@@ -292,8 +310,9 @@ function initStudentDashboard() {
             card.querySelector('.apply-btn').addEventListener('click', async () => {
                 const btn = card.querySelector('.apply-btn');
                 btn.innerText = 'Matching...';
+                const jobId = job.id || job._id; // Handle both id and _id
                 try {
-                    const matchResponse = await fetch(`${API_BASE_URL}/matches/${job.id}?applicant_id=${user.email}`, {
+                    const matchResponse = await fetch(`${API_BASE_URL}/matches/${jobId}?applicant_id=${user.email}`, {
                         method: 'POST'
                     });
                     if (matchResponse.ok) {
@@ -328,14 +347,11 @@ function initCompanyDashboard() {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const title = document.getElementById('job-title').value;
+            const companyName = document.getElementById('company-name').value;
             const description = document.getElementById('job-description').value;
-            const expInput = prompt("Required Years of Experience?", "2");
-            const skillsInput = prompt("Required Skills (comma separated)?", "Python, React");
-
-            if (!expInput || !skillsInput) return;
-
-            const exp = parseInt(expInput);
-            const skills = skillsInput.split(',').map(s => s.trim());
+            const exp = parseInt(document.getElementById('min-experience').value);
+            const cgpa = parseFloat(document.getElementById('min-cgpa').value);
+            const skills = document.getElementById('job-skills').value.split(',').map(s => s.trim());
 
             try {
                 const response = await fetch(`${API_BASE_URL}/jobs/?recruiter_id=${user.email}`, {
@@ -343,9 +359,11 @@ function initCompanyDashboard() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         title,
+                        company_name: companyName,
                         description,
                         required_skills: skills,
-                        required_experience: exp
+                        required_experience: exp,
+                        min_cgpa: cgpa
                     })
                 });
 
@@ -382,11 +400,13 @@ function initCompanyDashboard() {
                 <div class="match-header">
                     <div>
                         <div class="job-title">${job.title}</div>
-                        <div class="company-name">Required Exp: ${job.required_experience}y</div>
+                        <div class="company-name">${job.company_name || 'My Company'}</div>
+                        <div class="text-xs text-gray">Exp: ${job.required_experience}y | Min CGPA: ${job.min_cgpa || 'N/A'}</div>
                     </div>
                 </div>
                 <div class="match-body">
                      <p>${job.description.substring(0, 100)}...</p>
+                     <a href="applicants.html?job_id=${job.id || job._id}&title=${encodeURIComponent(job.title)}" class="btn btn-secondary btn-block mt-1">View Applicants</a>
                 </div>
             `;
             jobsGrid.appendChild(card);
@@ -464,5 +484,214 @@ function initMatchReport() {
         }
 
         missingContainer.appendChild(div);
+    });
+
+    // --- RESUME VIEWER (NEW) ---
+    const user = getUser();
+    if (user) {
+        // Fetch latest resume to get the file path
+        fetch(`${API_BASE_URL}/resumes/${user.email}`)
+            .then(time => time.json())
+            .then(resume => {
+                if (resume.file_path) {
+                    // Normalize path (Windows backslash to forward slash)
+                    const normalizedPath = resume.file_path.replace(/\\/g, '/');
+                    const pdfUrl = `${API_BASE_URL}/${normalizedPath}`;
+
+                    const iframe = document.getElementById('resume-frame');
+                    const downloadLink = document.getElementById('resume-link');
+
+                    if (iframe) iframe.src = pdfUrl;
+                    if (downloadLink) downloadLink.href = pdfUrl;
+                }
+            })
+            .catch(err => console.error("Could not load resume PDF:", err));
+    }
+
+    // --- APPLY FOR JOB LOGIC ---
+    const btnApply = document.getElementById('btn-apply');
+    if (btnApply) {
+        btnApply.addEventListener('click', async () => {
+            btnApply.innerText = 'Applying...';
+            btnApply.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/applications/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        job_id: matchData.job_id,
+                        applicant_id: user.email,
+                        score: matchData.score,
+                        match_data: matchData
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Application Submitted Successfully!');
+                    btnApply.innerText = 'Applied';
+                    btnApply.style.background = '#10b981';
+                } else {
+                    const err = await response.json();
+                    alert(`Application failed: ${err.detail}`);
+                    btnApply.innerText = 'Apply for Job';
+                    btnApply.disabled = false;
+                }
+            } catch (error) {
+                console.error('Apply error:', error);
+                alert('Connection error.');
+                btnApply.innerText = 'Apply for Job';
+                btnApply.disabled = false;
+            }
+        });
+    }
+}
+
+// ==========================================
+// RECRUITER: APPLICANTS LIST
+// ==========================================
+function initApplicantsList() {
+    const params = new URLSearchParams(window.location.search);
+    const jobId = params.get('job_id');
+    const jobTitle = params.get('title');
+
+    if (!jobId) return;
+
+    document.getElementById('job-titleed').textContent = jobTitle || 'Job';
+    const grid = document.getElementById('applicants-grid');
+
+    fetch(`${API_BASE_URL}/applications/job/${jobId}`)
+        .then(res => res.json())
+        .then(apps => {
+            grid.innerHTML = '';
+            if (apps.length === 0) {
+                grid.innerHTML = '<div class="empty-state">No applicants yet.</div>';
+                return;
+            }
+
+            apps.forEach(app => {
+                const card = document.createElement('div');
+                card.className = 'match-card';
+                // Score Color
+                let scoreColor = '#ef4444';
+                if (app.score >= 80) scoreColor = '#10b981';
+                else if (app.score >= 50) scoreColor = '#eab308';
+
+                card.innerHTML = `
+                    <div class="match-header">
+                        <div style="flex: 1;">
+                            <div class="job-title">${app.applicant_id}</div>
+                            <div class="text-xs text-gray">Applied: ${new Date(app.created_at).toLocaleDateString()}</div>
+                            <div class="text-xs" style="margin-top: 5px; font-weight: bold; color: ${app.status === 'shortlisted' ? '#10b981' : '#666'}">
+                                Status: ${app.status.toUpperCase()}
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: ${scoreColor};">${app.score}%</div>
+                            <div class="text-xs text-gray">Match</div>
+                        </div>
+                    </div>
+                    <div class="match-body">
+                         <button class="btn btn-primary btn-block mt-1 view-btn" data-id="${app.id}">View Details</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+
+                card.querySelector('.view-btn').addEventListener('click', () => {
+                    // Store app data to avoid re-fetching
+                    localStorage.setItem('selectedApplication', JSON.stringify(app));
+                    window.location.href = 'applicant_details.html';
+                });
+            });
+        })
+        .catch(err => console.error("Error fetching applicants:", err));
+}
+
+// ==========================================
+// RECRUITER: APPLICANT DETAILS
+// ==========================================
+function initApplicantDetails() {
+    const storedApp = localStorage.getItem('selectedApplication');
+    if (!storedApp) {
+        window.location.href = 'company.html';
+        return;
+    }
+    const app = JSON.parse(storedApp);
+    const matchData = app.match_data;
+
+    // Render Stats
+    document.getElementById('applicant-id').textContent = app.applicant_id;
+    document.getElementById('status-text').textContent = `Status: ${app.status.toUpperCase()}`;
+    document.getElementById('score-text').textContent = `${app.score}%`;
+
+    // Status color
+    const scoreCircle = document.getElementById('score-circle');
+    if (app.score >= 80) scoreCircle.style.borderColor = '#10b981';
+    else if (app.score >= 50) scoreCircle.style.borderColor = '#eab308';
+
+    // Skills
+    const matchedContainer = document.getElementById('matched-skills');
+    matchedContainer.innerHTML = '';
+    matchData.matched_skills.forEach(skill => {
+        const span = document.createElement('span');
+        span.className = 'tag success';
+        span.textContent = skill;
+        matchedContainer.appendChild(span);
+    });
+
+    const missingContainer = document.getElementById('missing-skills');
+    missingContainer.innerHTML = '';
+    matchData.missing_skills.forEach(skill => {
+        const span = document.createElement('span');
+        span.className = 'tag missing';
+        span.textContent = skill;
+        missingContainer.appendChild(span);
+    });
+
+    // Resume PDF
+    fetch(`${API_BASE_URL}/resumes/${app.applicant_id}`)
+        .then(res => res.json())
+        .then(resume => {
+            if (resume.file_path) {
+                const normalizedPath = resume.file_path.replace(/\\/g, '/');
+                document.getElementById('resume-frame').src = `${API_BASE_URL}/${normalizedPath}`;
+            }
+        });
+
+    // Buttons
+    const btnShortlist = document.getElementById('btn-shortlist');
+    const btnReject = document.getElementById('btn-reject');
+
+    if (app.status === 'shortlisted') btnShortlist.disabled = true;
+    if (app.status === 'rejected') btnReject.disabled = true;
+
+    btnShortlist.addEventListener('click', () => updateStatus(app.id, 'shortlisted', btnShortlist));
+    btnReject.addEventListener('click', () => updateStatus(app.id, 'rejected', btnReject));
+
+    async function updateStatus(appId, status, btn) {
+        btn.innerText = 'Updating...';
+        try {
+            const res = await fetch(`${API_BASE_URL}/applications/${appId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            if (res.ok) {
+                alert(`Applicant ${status}!`);
+                btn.innerText = (status === 'shortlisted') ? 'Shortlisted' : 'Rejected';
+                btn.disabled = true;
+                document.getElementById('status-text').textContent = `Status: ${status.toUpperCase()}`;
+            } else {
+                alert('Update failed');
+                btn.innerText = (status === 'shortlisted') ? 'Shortlist Candidate' : 'Reject';
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Connection error');
+        }
+    }
+
+    document.getElementById('back-link').addEventListener('click', () => {
+        window.history.back();
     });
 }

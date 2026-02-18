@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 
 class ResumeInDB(BaseModel):
@@ -9,6 +9,8 @@ class ResumeInDB(BaseModel):
     experience_years: int
     raw_text: str
     file_path: str
+    extracted_cgpa: Optional[float] = None
+    extracted_education: Optional[str] = None
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
 
 class ResumeResponse(BaseModel):
@@ -16,3 +18,5 @@ class ResumeResponse(BaseModel):
     skills: List[str]
     experience_years: int
     file_path: str
+    extracted_cgpa: Optional[float] = None
+    extracted_education: Optional[str] = None
