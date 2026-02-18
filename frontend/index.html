@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Matcher | AI Job Matching</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- Main Container -->
+    <div class="container">
+        
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="logo">ResumeMatcher.ai</div>
+            <div class="nav-links">
+                <button id="btn-login-nav" class="btn btn-secondary">Login</button>
+                <button id="btn-register-nav" class="btn btn-primary">Register</button>
+            </div>
+        </nav>
+
+        <!-- Landing Hero -->
+        <header id="landing-section" class="hero-section">
+            <h1 class="hero-title">Find Your Perfect Job<br>With AI Accuracy</h1>
+            <p class="hero-desc">
+                Upload your resume and let our AI match you with the best opportunities based on your skills, experience, and potential.
+            </p>
+            <div class="hero-buttons">
+                <button id="btn-get-started" class="btn btn-large btn-primary">Get Started</button>
+                <button id="btn-learn-more" class="btn btn-large btn-secondary">Learn More</button>
+            </div>
+        </header>
+
+        <!-- Auth Modal (Hidden by default) -->
+        <div id="auth-modal" class="modal hidden">
+            <div class="modal-content">
+                <span id="close-modal" class="close-btn">&times;</span>
+                
+                <!-- Login Form -->
+                <div id="login-form-container" class="auth-form-container">
+                    <h2>Welcome Back</h2>
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="login-email">Email</label>
+                            <input type="email" id="login-email" placeholder="Enter your email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" placeholder="Enter password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Login</button>
+                        <p class="auth-switch">Don't have an account? <a href="#" id="switch-to-register">Register</a></p>
+                    </form>
+                </div>
+
+                <!-- Register Form -->
+                <div id="register-form-container" class="auth-form-container hidden">
+                    <h2>Create Account</h2>
+                    <form id="register-form">
+                        <div class="form-group">
+                            <label for="register-role">I am a...</label>
+                            <select id="register-role" required>
+                                <option value="student">Student / Job Seeker</option>
+                                <option value="company">Company / Recruiter</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-email">Email</label>
+                            <input type="email" id="register-email" placeholder="Enter your email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-password">Password</label>
+                            <input type="password" id="register-password" placeholder="Create password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Register</button>
+                        <p class="auth-switch">Already have an account? <a href="#" id="switch-to-login">Login</a></p>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
