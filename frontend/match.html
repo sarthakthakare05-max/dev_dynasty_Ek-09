@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Report | Resume Matcher</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="dashboard-body">
+
+    <!-- Navbar -->
+    <nav class="navbar glass-nav">
+        <div class="container nav-container">
+            <div class="logo">ResumeMatcher.ai <span class="badge">Report</span></div>
+            <div class="nav-links">
+                <a href="student.html" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container match-report-container">
+
+        <!-- Header / Score -->
+        <div class="card report-header-card">
+            <div class="report-info">
+                <h1 id="job-title">Loading...</h1>
+                <p id="company-name" class="text-gray">Loading...</p>
+            </div>
+            <div class="score-circle-container">
+                <div class="score-circle" id="score-circle">
+                    <span id="score-text">0%</span>
+                </div>
+                <p>Match Score</p>
+            </div>
+        </div>
+
+        <!-- AI Summary -->
+        <div class="card mt-2">
+            <h3>AI Analysis</h3>
+            <p id="ai-summary" class="ai-summary-text">
+                Analyzing match details...
+            </p>
+        </div>
+
+        <!-- Skills Breakdown -->
+        <div class="skills-grid mt-2">
+
+            <!-- Matched Skills -->
+            <div class="card">
+                <h3 class="text-success">Matched Skills</h3>
+                <div id="matched-skills" class="tags-container">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <!-- Missing Skills -->
+            <div class="card">
+                <h3 class="text-danger">Missing Skills</h3>
+                <div id="missing-skills" class="tags-container">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+
+</html>

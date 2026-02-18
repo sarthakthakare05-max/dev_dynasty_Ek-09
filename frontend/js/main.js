@@ -18,6 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
         initCompanyDashboard();
     }
 
+    // --- MATCH REPORT LOGIC (Match.html) ---
+    const matchedSkillsContainer = document.getElementById('matched-skills');
+    if (matchedSkillsContainer) {
+        initMatchReport();
+    }
+
     // --- SHARED LOGIC ---
     const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
@@ -259,10 +265,15 @@ function initStudentDashboard() {
                 </div>
                 <div class="match-body">
                     <p class="match-summary">${match.summary}</p>
-                    <button class="btn btn-primary btn-block mt-1" style="font-size: 0.9rem;">View Details</button>
+                    <button class="btn btn-primary btn-block mt-1 view-details-btn" style="font-size: 0.9rem;">View Details</button>
                 </div>
             `;
             matchesGrid.appendChild(card);
+
+            // Add click listener to the button we just added
+            card.querySelector('.view-details-btn').addEventListener('click', () => {
+                window.location.href = 'match.html';
+            });
         });
     }
 }
@@ -338,4 +349,53 @@ function initCompanyDashboard() {
             jobsGrid.appendChild(card);
         });
     }
+}
+
+// ==========================================
+// MATCH REPORT ENTITY
+// ==========================================
+function initMatchReport() {
+    // Mock Data for the specific match
+    const matchData = {
+        jobTitle: 'Junior Frontend Developer',
+        company: 'TechFlow Solutions',
+        score: 92,
+        summary: 'Candidate shows exceptional promise. Strong proficiency in core frontend technologies (React, CSS, JS) matches our requirements perfectly. Lack of TypeScript experience is a minor gap, but manageable.',
+        matchedSkills: ['React', 'JavaScript', 'HTML5', 'CSS3', 'Git', 'Responsive Design'],
+        missingSkills: ['TypeScript', 'Redux', 'Jest']
+    };
+
+    // DOM Elements
+    document.getElementById('job-title').textContent = matchData.jobTitle;
+    document.getElementById('company-name').textContent = matchData.company;
+    document.getElementById('score-text').textContent = `${matchData.score}%`;
+    document.getElementById('ai-summary').textContent = matchData.summary;
+
+    const matchedContainer = document.getElementById('matched-skills');
+    const missingContainer = document.getElementById('missing-skills');
+    const scoreCircle = document.getElementById('score-circle');
+
+    // Color code circle
+    if (matchData.score >= 90) {
+        scoreCircle.style.borderColor = '#10b981'; // Success
+    } else if (matchData.score >= 70) {
+        scoreCircle.style.borderColor = '#eab308'; // Warning/Medium
+    } else {
+        scoreCircle.style.borderColor = '#ef4444'; // Danger
+    }
+
+    // Render Skills
+    matchData.matchedSkills.forEach(skill => {
+        const span = document.createElement('span');
+        span.className = 'tag success';
+        span.textContent = skill;
+        matchedContainer.appendChild(span);
+    });
+
+    matchData.missingSkills.forEach(skill => {
+        const span = document.createElement('span');
+        span.className = 'tag missing';
+        span.textContent = skill;
+        missingContainer.appendChild(span);
+    });
 }
