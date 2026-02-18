@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Dashboard | Resume Matcher</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="dashboard-body">
+
+    <!-- Navbar -->
+    <nav class="navbar glass-nav">
+        <div class="container nav-container">
+            <div class="logo">ResumeMatcher.ai <span class="badge"
+                    style="background: #e0e7ff; color: #3730a3;">Recruiter</span></div>
+            <div class="nav-links">
+                <button id="btn-logout" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container dashboard-container">
+
+        <!-- Sidebar / Create Job -->
+        <aside class="sidebar">
+            <div class="card">
+                <h3>Post a New Job</h3>
+                <p class="text-sm text-gray mb-1">Define requirement to find the perfect candidate.</p>
+                <form id="create-job-form">
+                    <div class="form-group">
+                        <label for="job-title">Job Title</label>
+                        <input type="text" id="job-title" placeholder="e.g. Frontend Developer" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="job-description">Job Description & Skills</label>
+                        <textarea id="job-description" rows="5" placeholder="Paste JD or list skills..." required
+                            class="form-textarea"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="min-experience">Min Experience (Years)</label>
+                        <input type="number" id="min-experience" min="0" value="0" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block mt-1">Post Job</button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="section-header">
+                <h2>Your Job Postings</h2>
+            </div>
+
+            <div id="jobs-grid" class="jobs-grid matches-grid">
+                <!-- Mock Job Cards will be injected here -->
+            </div>
+        </main>
+
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+
+</html>

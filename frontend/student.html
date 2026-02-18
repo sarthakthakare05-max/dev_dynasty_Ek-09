@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | Resume Matcher</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="dashboard-body">
+
+    <!-- Navbar -->
+    <nav class="navbar glass-nav">
+        <div class="container nav-container">
+            <div class="logo">ResumeMatcher.ai <span class="badge">Student</span></div>
+            <div class="nav-links">
+                <button id="btn-logout" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container dashboard-container">
+
+        <!-- Sidebar / Upload Area -->
+        <aside class="sidebar">
+            <div class="card upload-card">
+                <h3>Upload Resume</h3>
+                <p class="text-sm text-gray">Upload your PDF resume to extract skills and find matches.</p>
+                <form id="resume-upload-form">
+                    <div class="file-drop-area" id="drop-area">
+                        <span class="file-msg">Drag & Drop or Click</span>
+                        <input class="file-input" type="file" id="resume-file" accept=".pdf" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block mt-1">Analyze Resume</button>
+                </form>
+            </div>
+
+            <!-- Profile Summary (Hidden until uploaded) -->
+            <div id="profile-card" class="card profile-card hidden">
+                <h3>Your Profile</h3>
+                <div class="profile-section">
+                    <h4>Skills</h4>
+                    <div id="skills-list" class="tags-container">
+                        <!-- Skills will be injected here -->
+                    </div>
+                </div>
+                <div class="profile-section">
+                    <h4>Experience</h4>
+                    <p id="experience-text">0 Years</p>
+                </div>
+                <div class="profile-section">
+                    <h4>Education</h4>
+                    <p id="education-text">Not specified</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="section-header">
+                <h2>Recommended Jobs</h2>
+                <div class="filter-controls">
+                    <!-- Future filters -->
+                </div>
+            </div>
+
+            <div id="matches-grid" class="matches-grid">
+                <!-- Empty State -->
+                <div id="empty-state" class="empty-state">
+                    <p>Upload your resume to see matched jobs.</p>
+                </div>
+
+                <!-- Match Cards will be injected here -->
+            </div>
+        </main>
+
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+
+</html>
